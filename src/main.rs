@@ -61,9 +61,9 @@ fn main() {
     let args = std::env::args().collect::<Vec<_>>();
     let filename = args[1].clone();
     println!("Trying opening file '{}' from directory '{}'", filename, std::env::current_dir().unwrap().to_string_lossy());
-    let file: std::rc::Rc<std::cell::RefCell<Box<dyn analysis::MyReader>>> = std::rc::Rc::new(std::cell::RefCell::new(Box::new(std::fs::File::open(filename).unwrap())));
+    let file = std::fs::File::open(filename).unwrap();
 
-    let logs = analysis::read_log(file.clone(), ReadMode::All, vec![]);
+    let logs = analysis::read_log(file, ReadMode::All, vec![]);
     println!("got logs:");
     logs.iter().for_each(|parsed| println!("  {:?}", parsed));
 }
