@@ -44,35 +44,19 @@ impl<R: MyReader> Iterator for LogIterator<R> {
     }
 }
 
-/// Принимает поток байт, отдаёт отфильтрованные и распарсенные логи
-pub fn read_log<R: MyReader>(input: R, mode: ReadMode, request_ids: Vec<u32>) -> Vec<LogLine> {
-    let logs = LogIterator::new(input);
-    let mut collected = Vec::new();
-    // подсказка: можно обойтись итераторами
-    for log in logs {
-        if request_ids.is_empty() || {
-            let mut request_id_found = false;
-            for request_id in &request_ids {
-                if *request_id == log.request_id {
-                    request_id_found = true;
-                    break;
-                }
-            }
-            request_id_found
-        }
-        && {
-            match mode {
-                ReadMode::All => true,
-                ReadMode::Errors => {
-                    matches!(
+fn log_matches_read_mode(log: &LogLine, mode: &ReadMode) -> bool {
+    match mode {
+        ReadMode::All => true,
+        ReadMode::Errors => {
+            matches!(
                     &log.kind,
                     LogKind::System(
                         SystemLogKind::Error(_)) | LogKind::App(AppLogKind::Error(_)
                     )
                 )
-                }
-                ReadMode::Exchanges => {
-                    matches!(
+        }
+        ReadMode::Exchanges => {
+            matches!(
                     &log.kind,
                     LogKind::App(AppLogKind::Journal(
                         AppLogJournalKind::BuyAsset(_)
@@ -83,14 +67,18 @@ pub fn read_log<R: MyReader>(input: R, mode: ReadMode, request_ids: Vec<u32>) ->
                         | AppLogJournalKind::WithdrawCash(_)
                     ))
                 )
-                }
-            }
-        }
-        {
-            collected.push(log);
         }
     }
-    collected
+}
+
+/// Принимает поток байт, отдаёт отфильтрованные и распарсенные логи
+pub fn read_log<R: MyReader>(input: R, mode: ReadMode, request_ids: Vec<u32>) -> Vec<LogLine> {
+    let logs = LogIterator::new(input);
+    logs.filter(move |log| {
+        request_ids.is_empty() ||
+            request_ids.contains(&log.request_id)
+                && log_matches_read_mode(log, &mode)
+    }).collect()
 }
 
 
