@@ -1,5 +1,6 @@
 pub mod parse;
 
+use std::num::NonZeroU32;
 use parse::*;
 pub enum ReadMode {
     All,
@@ -74,7 +75,7 @@ fn log_matches_read_mode(log: &LogLine, mode: &ReadMode) -> bool {
 }
 
 /// Принимает поток байт, отдаёт отфильтрованные и распарсенные логи
-pub fn read_log<R: MyReader>(input: R, mode: ReadMode, request_ids: Vec<u32>) -> Vec<LogLine> {
+pub fn read_log<R: MyReader>(input: R, mode: ReadMode, request_ids: Vec<NonZeroU32>) -> Vec<LogLine> {
     let logs = LogIterator::new(input);
     logs.filter(move |log| {
         request_ids.is_empty() ||
