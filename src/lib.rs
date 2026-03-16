@@ -19,6 +19,7 @@ impl<T: std::io::Read + std::fmt::Debug + 'static> MyReader for T
 #[derive(Debug)]
 struct LogIterator<R: MyReader> {
     lines: std::iter::Filter<std::io::Lines<std::io::BufReader<R>>,fn(&Result<String,std::io::Error>) ->bool>,
+    parser: LogLineParser,
 }
 impl<R: MyReader> LogIterator<R> {
     fn new(r: R) -> Self {
@@ -32,6 +33,7 @@ impl<R: MyReader> LogIterator<R> {
                                .map(|line| line.trim().is_empty())
                                .unwrap_or(false)
                         ),
+            parser: LogLineParser::new(),
         }
     }
 }
@@ -39,7 +41,7 @@ impl<R: MyReader> Iterator for LogIterator<R> {
     type Item = parse::LogLine;
     fn next(&mut self) -> Option<Self::Item> {
         let line = self.lines.next()?.ok()?;
-        let (remaining, result) = LOG_LINE_PARSER.parse(line.trim()).ok()?;
+        let (remaining, result) = self.parser.parse(line.trim()).ok()?;
         remaining.trim().is_empty().then_some(result)
     }
 }

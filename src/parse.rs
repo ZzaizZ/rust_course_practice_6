@@ -1,6 +1,6 @@
 /// Трейт, чтобы **реализовывать** и **требовать** метод 'распарсь и покажи,
 /// что распарсить осталось'
-trait Parser {
+pub(crate) trait Parser {
     type Dest;
     // подсказка: здесь можно переделать
     // на `fn parse<'a>(&self,input:&'a str)->Result<(&'a str, Self::Dest)>`
@@ -594,6 +594,7 @@ fn alt8<Dest,A0: Parser<Dest=Dest>,A1: Parser<Dest=Dest>, A2: Parser<Dest=Dest>,
 
 /// Комбинатор для применения дочернего парсера N раз
 /// (аналог `take` из `nom`)
+#[derive(Debug)]
 struct Take<T> {
     count: usize,
     parser: T,
@@ -1111,19 +1112,18 @@ impl Parsable for LogLine {
     }
 }
 
-/// Парсер строки логов
-pub struct LogLineParser {
-    parser: std::sync::OnceLock<<LogLine as Parsable>::Parser>,
-}
+/// Парсер строки логов. Создаётся через [`LogLineParser::new`].
+#[derive(Debug)]
+pub struct LogLineParser(<LogLine as Parsable>::Parser);
+
 impl LogLineParser {
+    pub fn new() -> Self {
+        LogLineParser(LogLine::parser())
+    }
     pub fn parse<'a>(&self, input: &'a str) -> Result<(&'a str, LogLine), ()> {
-        self.parser.get_or_init(|| <LogLine as Parsable>::parser()).parse(input)
+        self.0.parse(input)
     }
 }
-// подсказка: singleton, без которого можно обойтись
-// парсеры не страшно вытащить в pub
-/// Единожды собранный парсер логов
-pub static LOG_LINE_PARSER: LogLineParser = LogLineParser{parser: std::sync::OnceLock::new()};
 
 #[cfg(test)]
 mod test {
