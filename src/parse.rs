@@ -47,6 +47,7 @@ mod stdp { // parsers for std types
     }
     /// Знаковые числа
     #[derive(Debug)]
+    #[allow(dead_code)]
     pub struct I32;
     impl Parser for I32 {
         type Dest = NonZeroI32;
@@ -75,6 +76,7 @@ mod stdp { // parsers for std types
 }
 
 /// Обернуть строку в кавычки, экранировав кавычки, которые в строке уже есть
+#[allow(dead_code)]
 fn quote (input: &str) -> String {
     let mut result = String::from("\"");
     result.extend(input.chars()
@@ -134,6 +136,7 @@ fn unquote() -> Unquote {
 }
 /// Парсер, возвращающий результат как есть
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct AsIs;
 impl Parser for AsIs {
     type Dest = String;
@@ -306,6 +309,7 @@ where A0: Parser,
 }
 /// Конструктор [All] для трёх парсеров
 /// (в Rust нет чего-то, вроде variadic templates из C++)
+#[allow(dead_code)]
 fn all3<A0: Parser, A1: Parser, A2: Parser>(a0: A0, a1: A1, a2: A2) -> All<(A0,A1,A2)> {
     All { parser: (a0, a1, a2) }
 }
@@ -327,6 +331,7 @@ where A0: Parser,
 }
 /// Конструктор [All] для четырёх парсеров
 /// (в Rust нет чего-то, вроде variadic templates из C++)
+#[allow(dead_code)]
 fn all4<A0: Parser, A1: Parser, A2: Parser, A3: Parser>(a0: A0, a1: A1, a2: A2, a3: A3) -> All<(A0,A1,A2,A3)> {
     All { parser: (a0, a1, a2, a3) }
 }
@@ -625,12 +630,14 @@ impl Parsable for AuthData {
 }
 
 /// Конструкция 'либо-либо'
+#[allow(dead_code)]
 enum Either<Left,Right> {
     Left(Left),
     Right(Right),
 }
 
 /// Статус, которые можно парсить
+#[allow(dead_code)]
 enum Status {
     Ok,
     Err(String),
@@ -780,8 +787,7 @@ impl Parsable for Announcements {
     }
 }
 
-// просто обёртки
-// подсказка: почему бы не заменить на один дженерик?
+#[allow(private_bounds)]
 pub fn just_parse_asset<T: Parsable>(input: &str) -> Result<(&str, T), ()> {
     T::parser().parse(input)
 }
